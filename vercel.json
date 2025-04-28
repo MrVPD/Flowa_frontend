@@ -1,0 +1,5 @@
+{
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://flowa-backend-taf.onrender.com"
+  }
+}
