@@ -1,40 +1,33 @@
 // Auth utility functions
 
+import Cookies from 'js-cookie';
+
 /**
- * Set authentication token in localStorage
+ * Set authentication token in cookie
  */
 export const setToken = (token: string): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('flowa_token', token);
-  }
+  // Lưu token vào cookie với thời hạn 7 ngày
+  Cookies.set('token', token, { expires: 7 });
 };
 
 /**
- * Get authentication token from localStorage
+ * Get authentication token from cookie
  */
 export const getToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('flowa_token');
-  }
-  return null;
+  return Cookies.get('token') || null;
 };
 
 /**
- * Remove authentication token from localStorage
+ * Remove authentication token from cookie
  */
 export const removeToken = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('flowa_token');
-  }
+  Cookies.remove('token');
 };
 
 /**
  * Check if user is authenticated
  */
 export const isAuthenticated = (): boolean => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('flowa_token');
-    return !!token;
-  }
-  return false;
+  const token = Cookies.get('token');
+  return !!token;
 };

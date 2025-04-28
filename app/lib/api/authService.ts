@@ -24,7 +24,11 @@ interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role?: string;
+}
+
+interface VerificationData {
+  email: string;
+  code: string;
 }
 
 interface LoginData {
@@ -32,30 +36,71 @@ interface LoginData {
   password: string;
 }
 
+interface GoogleLoginData {
+  tokenId: string;
+}
+
 interface UpdateProfileData {
   name?: string;
   email?: string;
-  currentPassword?: string;
-  newPassword?: string;
+  password?: string;
 }
 
 interface ApiKeyData {
-  name: string;
-  key: string;
   service: string;
+  key: string;
+  isActive: boolean;
 }
 
-// Thêm interface cho Google login
+// Response interfaces
+interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    isEmailVerified: boolean;
+  };
+}
+
+interface BeginRegistrationResponse {
+  message: string;
+}
+
 interface GoogleLoginResponse {
   token: string;
   user: {
     id: string;
     name: string;
     email: string;
+    isEmailVerified: boolean;
   };
 }
 
 export const authService = {
+  // Begin registration process by sending verification code
+  beginRegistration: async (data: RegisterData) => {
+    try {
+      const response = await axiosInstance.post<BeginRegistrationResponse>('/api/users/register-begin', data);
+      return response.data;
+    } catch (error) {
+      console.error('Registration start error details:', error);
+      throw error;
+    }
+  },
+
+  // Complete registration with verification code
+  completeRegistration: async (data: VerificationData) => {
+    try {
+      const response = await axiosInstance.post<AuthResponse>('/api/users/register-complete', data);
+      return response.data;
+    } catch (error) {
+      console.error('Registration completion error details:', error);
+      throw error;
+    }
+  },
+
+  // Legacy registration (if needed)
   register: async (data: RegisterData) => {
     // Log để debug
     console.log('Sending registration data to:', `${API_URL}/api/users/register`);
@@ -79,10 +124,15 @@ export const authService = {
     }
   },
 
-  // Thêm method đăng nhập với Google
+  // Đăng nhập với Google
   loginWithGoogle: async (tokenId: string) => {
-    const response = await axiosInstance.post<GoogleLoginResponse>('/api/auth/google', { tokenId });
-    return response.data;
+    try {
+      const response = await axiosInstance.post<GoogleLoginResponse>('/api/auth/google', { tokenId });
+      return response.data;
+    } catch (error) {
+      console.error('Google login error details:', error);
+      throw error;
+    }
   },
 
   getProfile: async () => {
@@ -103,6 +153,12 @@ export const authService = {
 
   manageApiKeys: async (apiKeys: ApiKeyData[]) => {
     const response = await axiosInstance.put('/api/users/api-keys', { apiKeys });
+    return response.data;
+  },
+
+  // Verify email from token link
+  verifyEmail: async (token: string) => {
+    const response = await axiosInstance.get(`/api/users/verify-email/${token}`);
     return response.data;
   },
 };
